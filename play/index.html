@@ -509,16 +509,16 @@ const ROOMS = [
 
 /* Short contextual hints. key = keyboard text, touch = touch text. */
 const HINTS = {
-  move: { key: 'A / D   move', touch: 'D-PAD   move' },
-  jump: { key: 'SPACE   jump  (hold = higher)', touch: 'JUMP   hold for height' },
-  fire: { key: 'J   fire', touch: 'FIRE' },
-  charge: { key: 'Hold J, release   charged shot', touch: 'Hold FIRE, release   charged shot' },
-  aim: { key: 'W + J   aim up', touch: 'UP + FIRE   aim up' },
-  dash: { key: 'K   dash  (works in midair)', touch: 'DASH   works in midair' },
-  wall: { key: 'Jump into a wall, then jump again', touch: 'Jump into a wall, then JUMP again' },
-  map: { key: 'M   map', touch: 'MAP   top right' },
-  crack: { key: 'Cracked panels break under fire', touch: 'Cracked panels break under fire' },
-  drop: { key: 'S + SPACE   drop through', touch: 'DOWN + JUMP   drop through' }
+  move: { key: 'A / D   move', touch: 'D-PAD   move', pad: 'LEFT STICK   move' },
+  jump: { key: 'SPACE   jump  (hold = higher)', touch: 'JUMP   hold for height', pad: '{A}   jump  (hold = higher)' },
+  fire: { key: 'J   fire', touch: 'FIRE', pad: '{X}  or  {RT}   fire' },
+  charge: { key: 'Hold J, release   charged shot', touch: 'Hold FIRE, release   charged shot', pad: 'Hold {X}, release   charged shot' },
+  aim: { key: 'W + J   aim up', touch: 'UP + FIRE   aim up', pad: 'Stick up + {X}   aim up' },
+  dash: { key: 'K   dash  (works in midair)', touch: 'DASH   works in midair', pad: '{B}  or  {RB}   dash  (works in midair)' },
+  wall: { key: 'Jump into a wall, then jump again', touch: 'Jump into a wall, then JUMP again', pad: 'Jump into a wall, then {A} again' },
+  map: { key: 'M   map', touch: 'MAP   top right', pad: '{select}   map' },
+  crack: { key: 'Cracked panels break under fire', touch: 'Cracked panels break under fire', pad: 'Cracked panels break under fire' },
+  drop: { key: 'S + SPACE   drop through', touch: 'DOWN + JUMP   drop through', pad: 'Down + {A}   drop through' }
 };
 /* ============================== WORLD ==============================
    All rooms are stitched into one global tile grid, so collisions and
@@ -724,24 +724,51 @@ function pointSolid(px, py) {
   return 0;
 }
 /* ============================== INPUT ==============================
-   Keyboard and touch both feed one action state. Edge flags (pressed /
-   released) are latched by events and consumed by the fixed-step sim, so
-   short taps are never lost between frames.
+   Keyboard, touch and gamepads all feed one action state. Edge flags
+   (pressed / released) are latched by events (or by polling, for pads) and
+   consumed by the fixed-step sim, so short taps are never lost.
    =================================================================== */
-const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'fire', 'dash', 'pause', 'map', 'confirm', 'back'];
+const ACTIONS = ['left', 'right', 'up', 'down', 'jump', 'fire', 'dash', 'use', 'pause', 'map', 'confirm', 'back'];
+/* Standard gamepad layout (by position): 0 bottom, 1 right, 2 left, 3 top face button,
+   4/5 shoulders, 6/7 triggers, 8 select/view, 9 start/menu, 12-15 d-pad. */
+const PAD_BUTTONS = {
+  0: ['jump', 'confirm'], 1: ['dash', 'back'], 2: ['fire'], 3: ['use'],
+  4: ['dash'], 5: ['dash'], 6: ['dash'], 7: ['fire'], 8: ['map'], 9: ['pause'],
+  12: ['up'], 13: ['down'], 14: ['left'], 15: ['right']
+};
+const PAD_BUTTONS_BASIC = { 0: ['jump', 'confirm'], 1: ['dash', 'back'], 2: ['fire'], 3: ['use'], 8: ['map'], 9: ['pause'] };
+/* Labels by controller family; {A} etc. in hint templates name a button by position. */
+const PAD_GLYPHS = {
+  xbox: { A: 'A', B: 'B', X: 'X', Y: 'Y', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT', start: 'MENU', select: 'VIEW' },
+  ps: { A: '✕', B: '○', X: '□', Y: '△', LB: 'L1', RB: 'R1', LT: 'L2', RT: 'R2', start: 'OPTIONS', select: 'CREATE' },
+  nin: { A: 'B', B: 'A', X: 'Y', Y: 'X', LB: 'L', RB: 'R', LT: 'ZL', RT: 'ZR', start: '+', select: '−' }
+};
+function padFamily(id) {
+  id = String(id || '').toLowerCase();
+  if (/054c|playstation|dualshock|dualsense/.test(id)) return 'ps';
+  if (/057e|nintendo|pro controller|joy-con/.test(id)) return 'nin';
+  return 'xbox';
+}
 const KEYMAP = {
   KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right', KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down',
   Space: 'jump', KeyZ: 'jump', KeyJ: 'fire', KeyX: 'fire', KeyK: 'dash', KeyC: 'dash',
   Escape: 'pause', KeyP: 'pause', KeyM: 'map', Enter: 'confirm', NumpadEnter: 'confirm', Backspace: 'back'
 };
 const Input = {
-  key: {}, touch: {}, held: {}, pressed: {}, released: {},
-  mode: 'key',            // last used device: 'key' | 'touch'
+  key: {}, touch: {}, pad: {}, held: {}, pressed: {}, released: {},
+  mode: 'key',            // last used device: 'key' | 'touch' | 'pad'
+  padSeen: false, padFamily: 'xbox', padIgnore: new Set(), padRest: new Map(),
   touchSeen: false,
   touches: new Map(),     // touch id -> control name
   pointerTap: null,       // {x,y} in game pixels for menu taps
   init() {
-    for (const a of ACTIONS) { this.key[a] = false; this.touch[a] = false; this.held[a] = false; this.pressed[a] = false; this.released[a] = false; }
+    for (const a of ACTIONS) { this.key[a] = false; this.touch[a] = false; this.pad[a] = false; this.held[a] = false; this.pressed[a] = false; this.released[a] = false; }
+    window.addEventListener('gamepadconnected', e => { this.padSeen = true; this.padFamily = padFamily(e.gamepad && e.gamepad.id); Game.onPad(true); });
+    window.addEventListener('gamepaddisconnected', e => {
+      if (e.gamepad) this.padRest.delete(e.gamepad.index);
+      for (const a of ACTIONS) { this.pad[a] = false; this.sync(a); }
+      Game.onPad(false);
+    });
     window.addEventListener('keydown', e => {
       const a = KEYMAP[e.code];
       if (!a) return;
@@ -775,7 +802,7 @@ const Input = {
     window.addEventListener('contextmenu', e => e.preventDefault());
   },
   sync(a) {
-    const h = this.key[a] || this.touch[a];
+    const h = this.key[a] || this.touch[a] || this.pad[a];
     if (h && !this.held[a]) this.pressed[a] = true;
     if (!h && this.held[a]) this.released[a] = true;
     this.held[a] = h;
@@ -784,11 +811,68 @@ const Input = {
     // a lost focus cancels a held charge instead of releasing it
     try { if (Game.S && Game.S.player) { Game.S.player.charging = false; Game.S.player.chargeLv = 0; } Audio.stopCharge(); } catch (e) { }
     for (const a of ACTIONS) {
-      this.key[a] = false; this.touch[a] = false;
+      if (this.pad[a]) this.padIgnore.add(a); // still physically held: wait for a release
+      this.key[a] = false; this.touch[a] = false; this.pad[a] = false;
       if (this.held[a]) this.released[a] = true;
       this.held[a] = false;
     }
     this.touches.clear();
+  },
+  /* Polled once per fixed step. Every connected pad contributes; the last device
+     that produced a fresh input decides which button prompts are shown. */
+  pollPads() {
+    if (!navigator.getGamepads) return;
+    let pads;
+    try { pads = navigator.getGamepads(); } catch (e) { return; }
+    const next = {};
+    let fam = null;
+    for (const gp of pads || []) {
+      if (!gp || !gp.connected) continue;
+      this.padSeen = true;
+      const std = gp.mapping === 'standard', map = std ? PAD_BUTTONS : PAD_BUTTONS_BASIC;
+      let used = false;
+      for (const i in map) {
+        const b = gp.buttons[+i];
+        if (b && (b.pressed || b.value > 0.5)) { for (const a of map[i]) next[a] = true; used = true; }
+      }
+      // left stick; on non-standard pads ignore axes that do not rest at centre
+      let ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+      if (!std) {
+        if (!this.padRest.has(gp.index)) this.padRest.set(gp.index, [ax, ay]);
+        const rest = this.padRest.get(gp.index);
+        if (Math.abs(rest[0]) > 0.2) ax = 0;
+        if (Math.abs(rest[1]) > 0.2) ay = 0;
+      }
+      const H = this.pad, vert = Math.abs(ay) > Math.abs(ax) * 0.7;
+      if (ax > (H.right ? 0.3 : 0.45)) next.right = used = true;
+      if (ax < -(H.left ? 0.3 : 0.45)) next.left = used = true;
+      if (vert && ay > (H.down ? 0.5 : 0.62)) next.down = used = true;
+      if (vert && ay < -(H.up ? 0.5 : 0.62)) next.up = used = true;
+      if (used && !fam) fam = padFamily(gp.id);
+    }
+    for (const a of [...this.padIgnore]) { if (next[a]) next[a] = false; else this.padIgnore.delete(a); }
+    let fresh = false;
+    for (const a of ACTIONS) {
+      const h = !!next[a];
+      if (h && !this.pad[a]) fresh = true;
+      if (h !== this.pad[a]) { this.pad[a] = h; this.sync(a); }
+    }
+    if (fresh) { this.mode = 'pad'; if (fam) this.padFamily = fam; Audio.unlockGesture(); }
+  },
+  padText(s) { const g = PAD_GLYPHS[this.padFamily] || PAD_GLYPHS.xbox; return s.replace(/\{(\w+)\}/g, (m, k) => g[k] || k); },
+  /* Light haptics, only while a controller is the device in use. */
+  rumble(strong, weak, ms) {
+    if (this.mode !== 'pad' || !Game.options.rumble || !navigator.getGamepads) return;
+    let pads;
+    try { pads = navigator.getGamepads(); } catch (e) { return; }
+    for (const gp of pads || []) {
+      const va = gp && gp.vibrationActuator;
+      if (!va || !va.playEffect) continue;
+      try {
+        const r = va.playEffect('dual-rumble', { startDelay: 0, duration: Math.round(ms), strongMagnitude: clamp(strong, 0, 1), weakMagnitude: clamp(weak, 0, 1) });
+        if (r && r.catch) r.catch(() => { });
+      } catch (e) { }
+    }
   },
   consume() { for (const a of ACTIONS) { this.pressed[a] = false; this.released[a] = false; } this.pointerTap = null; },
   onTouch(e, phase) {
@@ -1303,7 +1387,7 @@ const Player = {
     });
     p.muzzleT = charged ? 0.1 : 0.06;
     if (!p.onGround && !charged && p.aim === 'fwd') p.vx -= p.face * 4; // tiny recoil
-    if (charged) { Audio.play('cshot'); Game.shake(1.5, 0.12); Fx.ring(m.x, m.y, PAL.pE); Game.hintDone('charge'); S.stats.charged++; }
+    if (charged) { Audio.play('cshot'); Game.shake(1.5, 0.12); Input.rumble(0.2, 0.55, 90); Fx.ring(m.x, m.y, PAL.pE); Game.hintDone('charge'); S.stats.charged++; }
     else Audio.play(amp ? 'shotamp' : 'shot');
     Fx.muzzle(m.x, m.y, m.dx, m.dy, charged);
     S.stats.shots++;
@@ -1316,7 +1400,7 @@ const Player = {
     const dir = sign(this.cx(p) - srcX) || -p.face;
     p.vx = dir * 120; p.vy = -150; p.dashT = 0; p.charging = false; p.chargeLv = 0; Audio.stopCharge();
     p.sliding = false;
-    Audio.play('hurt'); Game.hitstop(6); Game.shake(3, 0.2);
+    Audio.play('hurt'); Game.hitstop(6); Game.shake(3, 0.2); Input.rumble(0.75, 0.5, 180);
     Fx.burst(this.cx(p), p.y + 8, 8, PAL.hazard, 70, 0.35);
     if (p.hp <= 0) { p.hp = 0; Game.playerDied(); }
     return true;
@@ -2062,13 +2146,13 @@ const Game = {
   toastMsg: null, hint: null, roomTitle: null, bossBar: null, message: null, banner: null,
   interactTarget: null, interactDist: 0, interactFn: null, lockControls: false,
   wardenFight: false, trans: null, deadT: 0, hazardT: 0, lift: null, beacon: null,
-  options: { sound: false, reduced: false }, hasSave: false, menu: null, confirm: null, sub: null,
+  options: { sound: false, reduced: false, rumble: true }, hasSave: false, menu: null, confirm: null, sub: null,
   dripPts: [],
 
   /* ---------- lifecycle ---------- */
   init() {
     const o = Store.read(OPT_KEY);
-    if (o) { this.options.sound = !!o.sound; this.options.reduced = !!o.reduced; }
+    if (o) { this.options.sound = !!o.sound; this.options.reduced = !!o.reduced; this.options.rumble = o.rumble !== false; }
     this.hasSave = !!Store.read(SAVE_KEY);
     this.S = freshState();
     this.enterRoom(World.byId.A1, true);
@@ -2216,7 +2300,7 @@ const Game = {
 
   /* ---------- feedback helpers ---------- */
   hitstop(f) { if (!this.options.reduced) this.hitstopF = Math.max(this.hitstopF, f); },
-  shake(a, t) { if (!this.options.reduced) { this.shakeAmt = Math.max(this.shakeAmt, a); this.shakeT = Math.max(this.shakeT, t); } },
+  shake(a, t) { if (a >= 2.5) Input.rumble(Math.min(1, a / 7), Math.min(1, a / 5), Math.min(450, t * 1000)); if (!this.options.reduced) { this.shakeAmt = Math.max(this.shakeAmt, a); this.shakeT = Math.max(this.shakeT, t); } },
   flash(f) { this.flashF = Math.max(this.flashF, this.options.reduced ? Math.min(f, 2) : f); },
   toast(msg, t = 2.4) { this.toastMsg = { msg, t, max: t }; },
   hintOnce(id) {
@@ -2252,7 +2336,7 @@ const Game = {
     else if (o.kind === 'amp') { S.upgrades.amp = true; title = 'PULSE AMPLIFIER'; sub = 'Bolts hit harder. Charging is faster.'; }
     else if (o.kind === 'dash') { S.upgrades.dash = true; title = 'AIR DASH'; sub = 'A burst of thrust, on the ground or in midair.'; hint = 'dash'; big = true; }
     else if (o.kind === 'boots') { S.upgrades.boots = true; title = 'MAGNETIC BOOTS'; sub = 'Slide down walls and jump off them.'; hint = 'wall'; big = true; }
-    Audio.play(big ? 'upgrade' : 'item');
+    Audio.play(big ? 'upgrade' : 'item'); Input.rumble(0.3, 0.6, 240);
     this.banner = { title, sub, t: 0, big, hint };
     this.state = 'banner';
     p.charging = false; Audio.stopCharge();
@@ -2326,11 +2410,17 @@ const Game = {
     this.deadT = 0; this.state = 'dead';
     this.save();
   },
+  onPad(connected) {
+    const playing = ['play', 'trans', 'message', 'banner'].includes(this.state);
+    if (connected) { if (playing) this.toast('CONTROLLER CONNECTED', 1.8); if (this.state === 'title' && !this.confirm) this.buildTitleMenu(this.menu ? this.menu.idx : 0); }
+    else if (Input.mode === 'pad') { if (this.state === 'play' || this.state === 'trans') this.openPause(); this.toast('CONTROLLER DISCONNECTED', 2.4); }
+  },
   onHidden() { if (this.state === 'play' || this.state === 'trans') this.openPause(); Audio.stopCharge(); },
-  touchControlsActive() { return Input.touchSeen && (this.state === 'play' || this.state === 'trans' || this.state === 'banner' || this.state === 'dead'); },
+  touchControlsActive() { return Input.touchSeen && Input.mode === 'touch' && (this.state === 'play' || this.state === 'trans' || this.state === 'banner' || this.state === 'dead'); },
 
   /* ---------- fixed step ---------- */
   step() {
+    Input.pollPads();
     this.time += DT;
     const I = Input;
     if (this.toastMsg) { this.toastMsg.t -= DT; if (this.toastMsg.t <= 0) this.toastMsg = null; }
@@ -2368,7 +2458,7 @@ const Game = {
     Boss.update(S);
     if (Boss.b && Boss.b.state === 'dormant' && !S.flags.boss && Player.cx(p) > this.room.x + 10 * TILE && Player.cx(p) < this.room.x + 37 * TILE) Boss.wake();
     Shots.update(S); Pickups.update(S); Objects.update(S); Fx.update();
-    if (I.pressed.up && this.interactTarget && this.interactFn && !p.dead && this.hazardT <= 0) this.interactFn();
+    if ((I.pressed.up || I.pressed.use) && this.interactTarget && this.interactFn && !p.dead && this.hazardT <= 0) this.interactFn();
     if (this.bossBar && this.wardenFight) { const w = Enemies.list.find(e => e.type === 'warden'); if (w) this.bossBar.hp = w.hp; }
     this.updateCamera();
     this.ambient();
@@ -2392,7 +2482,7 @@ const Game = {
     const prev = Math.floor(M.shown);
     M.shown = Math.min(total, M.shown + DT * 70);
     if (Math.floor(M.shown) > prev && Math.floor(M.shown) % 3 === 0) Audio.play('type');
-    if ((I.pressed.confirm || I.pressed.jump || I.pressed.up || I.pressed.fire || I.pressed.back || I.pressed.pause || I.pointerTap) && M.t > 0.15) {
+    if ((I.pressed.confirm || I.pressed.jump || I.pressed.up || I.pressed.use || I.pressed.fire || I.pressed.back || I.pressed.pause || I.pointerTap) && M.t > 0.15) {
       if (M.shown < total) M.shown = total; else { this.state = 'play'; this.message = null; Audio.play('menu'); }
     }
   },
@@ -2401,7 +2491,7 @@ const Game = {
     B.t += DT;
     Fx.update();
     const minT = B.big ? 1.4 : 0.9;
-    if ((B.t > minT && (I.pressed.confirm || I.pressed.jump || I.pressed.fire || I.pressed.up || I.pointerTap)) || B.t > (B.big ? 5 : 3)) {
+    if ((B.t > minT && (I.pressed.confirm || I.pressed.jump || I.pressed.fire || I.pressed.up || I.pressed.use || I.pointerTap)) || B.t > (B.big ? 5 : 3)) {
       this.state = 'play'; this.banner = null;
       if (B.hint) { this.S.hintsDone[B.hint] = false; delete this.S.hintsDone[B.hint]; this.hint = null; this.hintOnce(B.hint); }
     }
@@ -2476,6 +2566,7 @@ Object.assign(Game, {
     items.push({ label: 'NEW GAME', act: () => this.askNewGame() });
     items.push({ label: 'SOUND', val: () => this.onOff(this.options.sound), act: () => this.toggleSound() });
     items.push({ label: 'REDUCED MOTION', val: () => this.onOff(this.options.reduced), act: () => this.toggleReduced() });
+    if (Input.padSeen) items.push({ label: 'RUMBLE', val: () => this.onOff(this.options.rumble), act: () => this.toggleRumble() });
     items.push({ label: 'CONTROLS', act: () => this.openControls('title') });
     this.menu = { kind: 'title', items, idx: clamp(idx, 0, items.length - 1) };
   },
@@ -2489,6 +2580,7 @@ Object.assign(Game, {
     Audio.setEnabled(this.options.sound);
     if (this.options.sound) { Audio.ambience(this.state === 'title' ? 'ridge' : REG[this.room.reg].amb); Audio.play('select'); }
   },
+  toggleRumble() { this.options.rumble = !this.options.rumble; this.saveOptions(); Audio.play('select'); if (this.options.rumble) Input.rumble(0.4, 0.6, 160); },
   toggleReduced() { this.options.reduced = !this.options.reduced; this.saveOptions(); Audio.play('select'); if (this.options.reduced) { this.shakeAmt = 0; this.hitstopF = 0; } },
   openPause() {
     this.prevState = 'play'; this.state = 'pause'; this.confirm = null;
@@ -2500,6 +2592,7 @@ Object.assign(Game, {
         { label: 'CONTROLS', act: () => this.openControls('pause') },
         { label: 'SOUND', val: () => this.onOff(this.options.sound), act: () => this.toggleSound() },
         { label: 'REDUCED MOTION', val: () => this.onOff(this.options.reduced), act: () => this.toggleReduced() },
+        ...(Input.padSeen ? [{ label: 'RUMBLE', val: () => this.onOff(this.options.rumble), act: () => this.toggleRumble() }] : []),
         { label: 'QUIT TO TITLE', act: () => { this.confirm = { text: 'Return to the title screen?', sub: 'You will resume from your last rest pod.', idx: 0, yes: () => { this.save(); this.toTitle(); } }; } }
       ]
     };
@@ -2549,15 +2642,15 @@ Object.assign(Game, {
 });
 
 const CONTROLS_TEXT = [
-  ['MOVE', 'A / D  or  ← →', 'D-PAD'],
-  ['JUMP', 'SPACE  or  Z  (hold = higher)', 'JUMP'],
-  ['FIRE', 'J  or  X  (hold, release = charged)', 'FIRE'],
-  ['DASH', 'K  or  C  (once unlocked)', 'DASH'],
-  ['CROUCH', 'S  or  ↓', 'D-PAD DOWN'],
-  ['AIM UP / USE', 'W  or  ↑', 'D-PAD UP'],
-  ['DROP THROUGH', 'S + SPACE on a grate', 'DOWN + JUMP'],
-  ['MAP', 'M', 'MAP (top right)'],
-  ['PAUSE', 'ESC', 'II (top right)']
+  ['MOVE', 'A / D  or  ← →', 'D-PAD', 'LEFT STICK  or  D-PAD'],
+  ['JUMP', 'SPACE  or  Z  (hold = higher)', 'JUMP', '{A}  (hold = higher)'],
+  ['FIRE', 'J  or  X  (hold, release = charged)', 'FIRE', '{X}  or  {RT}  (hold, release = charged)'],
+  ['DASH', 'K  or  C  (once unlocked)', 'DASH', '{B}  or  {RB} / {LB} / {LT}'],
+  ['CROUCH', 'S  or  ↓', 'D-PAD DOWN', 'STICK DOWN'],
+  ['AIM UP / USE', 'W  or  ↑', 'D-PAD UP', 'STICK UP  ·  {Y} also uses'],
+  ['DROP THROUGH', 'S + SPACE on a grate', 'DOWN + JUMP', 'DOWN + {A}'],
+  ['MAP', 'M', 'MAP (top right)', '{select}'],
+  ['PAUSE', 'ESC', 'II (top right)', '{start}']
 ];
 /* ========================== RENDER: CORE ==========================
    Low-res canvas (320x180) upscaled with nearest-neighbour; a hi-res
@@ -3923,7 +4016,15 @@ function drawPrompt(ctx, o, cam, t) {
   ctx.fillStyle = PAL.ink; ctx.fillRect(x - 5, y - 5, 11, 11);
   ctx.fillStyle = '#e8e0d0'; ctx.fillRect(x - 4, y - 4, 9, 9);
   ctx.fillStyle = '#a89c88'; ctx.fillRect(x - 4, y + 4, 9, 1);
-  if (Input.mode === 'touch') { ctx.fillStyle = PAL.ink; ctx.fillRect(x, y - 2, 1, 5); ctx.fillRect(x - 1, y - 1, 3, 1); ctx.fillRect(x - 2, y, 5, 1); }
+  if (Input.mode === 'pad') {
+    // a round face button showing the "use" button for this controller family
+    const fam = Input.padFamily, col = fam === 'ps' ? '#7fe0b0' : fam === 'nin' ? '#d8d0c0' : '#f2c94c';
+    ctx.fillStyle = PAL.ink; ctx.fillRect(x - 5, y - 5, 11, 11);
+    ctx.fillStyle = '#07060b'; ctx.fillRect(x - 5, y - 5, 1, 1); ctx.fillRect(x + 5, y - 5, 1, 1); ctx.fillRect(x - 5, y + 5, 1, 1); ctx.fillRect(x + 5, y + 5, 1, 1);
+    ctx.fillStyle = col; ctx.fillRect(x - 3, y - 4, 7, 9); ctx.fillRect(x - 4, y - 3, 9, 7);
+    if (fam === 'ps') { ctx.fillStyle = PAL.ink; ctx.fillRect(x, y - 2, 1, 1); ctx.fillRect(x - 1, y - 1, 1, 2); ctx.fillRect(x + 1, y - 1, 1, 2); ctx.fillRect(x - 2, y + 1, 5, 1); }
+    else pixTextCtx(ctx, fam === 'nin' ? 'X' : 'Y', x - 1, y - 2, PAL.ink);
+  } else if (Input.mode === 'touch') { ctx.fillStyle = PAL.ink; ctx.fillRect(x, y - 2, 1, 5); ctx.fillRect(x - 1, y - 1, 3, 1); ctx.fillRect(x - 2, y, 5, 1); }
   else pixTextCtx(ctx, 'W', x - 1, y - 2, PAL.ink);
 }
 function drawBeaconBeam(ctx, cam, t) {
@@ -4016,7 +4117,9 @@ const UI = {
     ctx.fillStyle = '#120e1a'; ctx.fillRect(x, y, w, h);
     ctx.fillStyle = border; ctx.fillRect(x, y, w, 1); ctx.fillRect(x, y + h - 1, w, 1); ctx.fillRect(x, y, 1, h); ctx.fillRect(x + w - 1, y, 1, h);
   },
-  keyText(id) { const h = HINTS[id]; return Input.mode === 'touch' ? h.touch : h.key; },
+  keyText(id) { const h = HINTS[id]; if (Input.mode === 'pad') return Input.padText(h.pad || h.key); return Input.mode === 'touch' ? h.touch : h.key; },
+  /* pick a prompt for the device in use: keyboard text, touch text, pad template */
+  dev(key, touch, pad) { return Input.mode === 'pad' ? Input.padText(pad) : Input.mode === 'touch' ? touch : key; },
 
   /* ---------------- HUD ---------------- */
   drawHUD(ctx, cam) {
@@ -4144,7 +4247,7 @@ const UI = {
     leg((x, y) => { ctx.fillStyle = '#7fb8ff'; ctx.fillRect(x, y - 2, 1, 5); ctx.fillRect(x + 4, y - 2, 1, 5); ctx.fillRect(x + 1, y - 2, 3, 1); }, 'wall barrier');
     leg((x, y) => { ctx.fillStyle = PAL.item; ctx.fillRect(x + 1, y - 1, 3, 3); }, 'item seen');
     leg((x, y) => { ctx.fillStyle = '#f0e0c8'; ctx.fillRect(x, y - 1, 4, 3); }, 'door');
-    this.text(Input.mode === 'touch' ? 'tap to close' : 'M / ESC to close', VW / 2, 172, { size: 4, mono: true, align: 'center', color: '#8a7a9a' });
+    this.text(this.dev('M / ESC to close', 'tap to close', '{B}  or  {select}  to close'), VW / 2, 172, { size: 4, mono: true, align: 'center', color: '#8a7a9a' });
   },
 
   /* ---------------- menus ---------------- */
@@ -4153,7 +4256,7 @@ const UI = {
     this.text('DUSK STATION', VW / 2, 34, { size: 20, weight: 700, align: 'center', color: '#f6c070' });
     this.text('A lone surveyor. An abandoned station. Perpetual dusk.', VW / 2, 60, { size: 5, mono: true, align: 'center', color: '#e8d8f0' });
     if (Game.hasSave === false && Game.time < 0) this.text('', 0, 0);
-    this.text(Input.mode === 'touch' ? 'Tap to choose' : '↑ ↓ choose · SPACE / ENTER confirm', VW / 2, 168, { size: 4.5, mono: true, align: 'center', color: '#c8b0c0', alpha: 0.85 + Math.sin(t * 2) * 0.15 });
+    this.text(this.dev('↑ ↓ choose · SPACE / ENTER confirm', 'Tap to choose', 'D-PAD choose · {A} confirm'), VW / 2, 168, { size: 4.5, mono: true, align: 'center', color: '#c8b0c0', alpha: 0.85 + Math.sin(t * 2) * 0.15 });
   },
   drawPauseTitle() { this.text('PAUSED', VW / 2, 30, { size: 12, align: 'center', color: '#f6d39a' }); const S = Game.S; this.text(`${fmtTime(S.time)}   ·   ${Game.room.name}`, VW / 2, 46, { size: 5, mono: true, align: 'center', color: '#c8b8d8' }); },
   drawMenu() {
@@ -4183,16 +4286,17 @@ const UI = {
     });
   },
   drawControls() {
-    const ctx = Display.ctx, touch = Input.mode === 'touch';
+    const ctx = Display.ctx, touch = Input.mode === 'touch', pad = Input.mode === 'pad';
     this.box(ctx, 24, 18, 272, 146);
     this.text('CONTROLS', VW / 2, 24, { size: 8, align: 'center', color: '#f6d39a' });
-    CONTROLS_TEXT.forEach(([a, k, tch], i) => {
+    if (pad) this.text(Input.padFamily === 'ps' ? 'PLAYSTATION CONTROLLER' : Input.padFamily === 'nin' ? 'NINTENDO CONTROLLER' : 'CONTROLLER', VW / 2, 33, { size: 4.5, mono: true, align: 'center', color: '#8a7a9a' });
+    CONTROLS_TEXT.forEach(([a, k, tch, pd], i) => {
       const y = 40 + i * 12;
       this.text(a, 36, y, { size: 5, color: '#c8b8d8' });
-      this.text(touch ? tch : k, 120, y, { size: 5, mono: true, color: '#efe6d4' });
+      this.text(pad ? Input.padText(pd) : touch ? tch : k, 120, y, { size: 5, mono: true, color: '#efe6d4' });
     });
     this.text('Movement and firing work together. Hints vanish once used.', VW / 2, 150, { size: 4.2, mono: true, align: 'center', color: '#8a7a9a' });
-    this.text(touch ? 'tap to return' : 'any key to return', VW / 2, 157, { size: 4.2, mono: true, align: 'center', color: '#8a7a9a' });
+    this.text(this.dev('any key to return', 'tap to return', '{B} to return'), VW / 2, 157, { size: 4.2, mono: true, align: 'center', color: '#8a7a9a' });
   },
   drawMessage(ctx) {
     const M = Game.message;
@@ -4221,7 +4325,7 @@ const UI = {
     ditherFill(ctx, '#07060b', Math.round(k * 12), 0, 0, VW, VH);
     if (Game.deadT > 0.5) {
       this.text('SIGNAL LOST', VW / 2, 70, { size: 12, align: 'center', color: '#ff8a8a' });
-      if (Game.deadT > 1.1) this.text(Input.mode === 'touch' ? 'Tap to retry from the last rest pod' : 'Press SPACE to retry from the last rest pod', VW / 2, 92, { size: 5, mono: true, align: 'center', color: '#efe6d4', alpha: 0.75 + Math.sin(Game.time * 4) * 0.25 });
+      if (Game.deadT > 1.1) this.text(this.dev('Press SPACE to retry from the last rest pod', 'Tap to retry from the last rest pod', 'Press {A} to retry from the last rest pod'), VW / 2, 92, { size: 5, mono: true, align: 'center', color: '#efe6d4', alpha: 0.75 + Math.sin(Game.time * 4) * 0.25 });
     }
   },
   drawComplete(ctx) {

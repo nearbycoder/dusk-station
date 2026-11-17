@@ -41,7 +41,7 @@
     frame = document.createElement('iframe');
     frame.src = 'play/';
     frame.title = 'Dusk Station, playable';
-    frame.allow = 'fullscreen; autoplay';
+    frame.allow = 'fullscreen; autoplay; gamepad';
     frame.setAttribute('allowfullscreen', '');
     frame.addEventListener('load', focusGame);
     screen.appendChild(frame);
@@ -55,6 +55,27 @@
   }
 
   overlay && overlay.addEventListener('click', startGame);
+
+  /* a controller on the landing page: say so, and let A or Start launch the game */
+  let padWatch = 0;
+  const padDown = () => {
+    try { for (const gp of navigator.getGamepads() || []) if (gp && gp.buttons && (gp.buttons[0]?.pressed || gp.buttons[9]?.pressed)) return true; } catch (e) { }
+    return false;
+  };
+  addEventListener('gamepadconnected', () => {
+    if (frame || padWatch || !overlay) return;
+    const hint = $('#playHint');
+    if (hint) hint.textContent = 'Controller ready: press A or Start to play';
+    let wasDown = padDown();
+    const watch = () => {
+      if (frame) { padWatch = 0; return; }
+      const down = padDown();
+      if (down && !wasDown) { padWatch = 0; startGame(); return; }
+      wasDown = down;
+      padWatch = requestAnimationFrame(watch);
+    };
+    padWatch = requestAnimationFrame(watch);
+  });
 
   $$('[data-play]').forEach(a => a.addEventListener('click', e => {
     e.preventDefault();

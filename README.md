@@ -18,17 +18,19 @@ The game is one self-contained file, [`play/index.html`](play/index.html), with 
 
 Open the site, or open `play/index.html` straight from disk. Sound is off by default; turn it on from the title or pause menu.
 
-| Action | Keyboard | Touch |
-| --- | --- | --- |
-| Move | A / D or ← → | D-pad |
-| Jump (hold for height) | Space or Z | JUMP |
-| Fire (hold and release to charge) | J or X | FIRE |
-| Dash (once found) | K or C | DASH |
-| Crouch | S or ↓ | D-pad down |
-| Use / aim up | W or ↑ | D-pad up |
-| Drop through a grate | S + Space | down + JUMP |
-| Map | M | MAP |
-| Pause | Esc | II |
+| Action | Keyboard | Controller | Touch |
+| --- | --- | --- | --- |
+| Move | A / D or ← → | Left stick or d-pad | D-pad |
+| Jump (hold for height) | Space or Z | A (✕) | JUMP |
+| Fire (hold and release to charge) | J or X | X (□) or RT (R2) | FIRE |
+| Dash (once found) | K or C | B (○), RB, LB or LT | DASH |
+| Crouch | S or ↓ | Stick down | D-pad down |
+| Use / aim up | W or ↑ | Y (△) or stick up | D-pad up |
+| Drop through a grate | S + Space | Down + A | down + JUMP |
+| Map | M | View (Create) | MAP |
+| Pause | Esc | Menu (Options) | II |
+
+Controllers use the browser Gamepad API with the standard layout. Button prompts follow whichever device you used last and switch to Xbox, PlayStation or Nintendo labels to match the pad. There is light rumble (off from the pause menu), and unplugging a controller mid-game pauses it.
 
 Progress saves at rest pods (and on upgrades, shortcuts and boss kills) to `localStorage`. If storage is blocked the game still runs; it just can't save. The game pauses itself when it loses focus.
 

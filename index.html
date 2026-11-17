@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dusk Station · A pixel-art exploration platformer you can play in your browser</title>
-<meta name="description" content="A lone surveyor, an abandoned research station and a sun that never sets. Dusk Station is a free pixel-art exploration platformer: three regions, two movement upgrades, secrets, a boss, and no install. Play it right here.">
+<meta name="description" content="A lone surveyor, an abandoned research station and a sun that never sets. Dusk Station is a free pixel-art exploration platformer: three regions, two movement upgrades, secrets, a boss, and no install. Play it right here with a keyboard, controller or touch.">
 <meta name="theme-color" content="#07060b">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="canonical" href="https://nearbycoder.github.io/dusk-station/">
@@ -56,7 +56,7 @@
           </video>
           <button class="screen-overlay" id="playBtn" type="button" aria-label="Play Dusk Station here">
             <span class="btn btn--big" aria-hidden="true"><svg viewBox="0 0 8 8" fill="currentColor"><path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"/></svg>Play now</span>
-            <small>Runs right here · no install · about 20 minutes</small>
+            <small id="playHint">Runs right here · no install · about 20 minutes</small>
           </button>
         </div>
         <div class="screen-bar">
@@ -64,7 +64,7 @@
           <a class="btn btn--ghost btn--small" href="play/" target="_blank" rel="noopener"><svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><path d="M3 0h5v5H7V2L3 6 2 5l4-4H3zM0 2h2v1H1v4h4V6h1v2H0z"/></svg>Open in a new tab</a>
           <a class="btn btn--ghost btn--small" href="https://github.com/nearbycoder/dusk-station"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Source</a>
         </div>
-        <p class="screen-help" id="screenHelp"><span class="key-only"><kbd>A</kbd><kbd>D</kbd> move &nbsp;<kbd>Space</kbd> jump &nbsp;<kbd>J</kbd> fire &nbsp;<kbd>K</kbd> dash &nbsp;<kbd>W</kbd> use &nbsp;<kbd>M</kbd> map &nbsp;<kbd>Esc</kbd> pause</span><span class="touch-only">On-screen touch controls appear once you start. Best in landscape.</span></p>
+        <p class="screen-help" id="screenHelp"><span class="key-only"><kbd>A</kbd><kbd>D</kbd> move &nbsp;<kbd>Space</kbd> jump &nbsp;<kbd>J</kbd> fire &nbsp;<kbd>K</kbd> dash &nbsp;<kbd>W</kbd> use &nbsp;<kbd>M</kbd> map &nbsp;<kbd>Esc</kbd> pause</span><span class="touch-only">On-screen touch controls appear once you start. Best in landscape.</span><br><span class="pad-note">Controllers work too: plug one in and press any button.</span></p>
       </div>
     </div>
   </section>
@@ -302,7 +302,7 @@
         <article class="notch reveal"><h3><i></i>Rooms as data</h3><p>Rooms are written as tile rectangles plus objects and scenery. Their parallax layers, walls, tiles and props are painted procedurally on entry and cached.</p></article>
         <article class="notch reveal"><h3><i></i>Feel, in numbers</h3><p>A fixed 60 Hz step, 0.1 s of coyote time, a 0.135 s jump buffer and 4 px collision sub-steps, so nothing tunnels through an 8 px tile. The camera snaps to whole pixels and moves in step with you.</p></article>
         <article class="notch reveal"><h3><i></i>Every sound synthesised</h3><p>Footsteps, bolts, the charge hum, enemy tells and the drone of each region are oscillators and filtered noise in Web Audio. Sound is off until you turn it on.</p></article>
-        <article class="notch reveal"><h3><i></i>Plays anywhere</h3><p>Keyboard or touch with multi-finger support, a reduced-motion mode, auto-pause when focus is lost, and local saves that fall back gracefully when storage is blocked.</p></article>
+        <article class="notch reveal"><h3><i></i>Plays anywhere</h3><p>Keyboard, controller or multi-touch. Button prompts follow whatever you last touched, including Xbox, PlayStation and Nintendo labels. There is light rumble, a reduced-motion mode, auto-pause when focus is lost, and local saves that keep working even if storage is blocked.</p></article>
       </div>
 
       <div class="callout notch reveal">
@@ -321,7 +321,7 @@
       <div class="sec-head reveal">
         <span class="eyebrow">Controls</span>
         <h2 id="controls-h">Pick it up in seconds.</h2>
-        <p class="lead muted">Hints appear the first time you need them and disappear once you've done the thing. Movement and firing work together.</p>
+        <p class="lead muted">Keyboard, controller or touch. Hints appear the first time you need them, use the buttons of whatever you're holding, and disappear once you've done the thing.</p>
       </div>
       <div class="controls">
         <div class="card notch reveal">
@@ -338,6 +338,19 @@
           </table>
         </div>
         <div class="card notch reveal">
+          <h3>Controller</h3>
+          <table class="ctable">
+            <tr><th>Move</th><td>Left stick or d-pad</td></tr>
+            <tr><th>Jump</th><td><kbd>A</kbd> <span class="alt">(✕)</span> · hold for height</td></tr>
+            <tr><th>Fire</th><td><kbd>X</kbd> <span class="alt">(□)</span> or <kbd>RT</kbd> <span class="alt">(R2)</span> · hold to charge</td></tr>
+            <tr><th>Dash</th><td><kbd>B</kbd> <span class="alt">(○)</span>, <kbd>RB</kbd>, <kbd>LB</kbd> or <kbd>LT</kbd></td></tr>
+            <tr><th>Use</th><td><kbd>Y</kbd> <span class="alt">(△)</span> or stick up</td></tr>
+            <tr><th>Crouch / aim up</th><td>Stick down / up</td></tr>
+            <tr><th>Map · Pause</th><td><kbd>View</kbd> · <kbd>Menu</kbd></td></tr>
+          </table>
+          <p class="muted" style="margin:18px 0 0;font-size:15px">Prompts switch to Xbox, PlayStation or Nintendo labels to match your pad. You can turn rumble off in the pause menu.</p>
+        </div>
+        <div class="card notch reveal">
           <h3>Touch</h3>
           <table class="ctable">
             <tr><th>Move, crouch, use</th><td>D-pad (left thumb)</td></tr>
@@ -348,7 +361,7 @@
           </table>
           <p class="muted" style="margin:18px 0 0;font-size:15px">Best in landscape. On a phone, <a href="play/">open the game full screen</a>.</p>
           <div class="options">
-            <span class="chip">Reduced motion</span><span class="chip">Sound toggle</span><span class="chip">Auto-pause</span><span class="chip">Local saves</span>
+            <span class="chip">Reduced motion</span><span class="chip">Sound toggle</span><span class="chip">Rumble toggle</span><span class="chip">Auto-pause</span><span class="chip">Local saves</span>
           </div>
         </div>
       </div>

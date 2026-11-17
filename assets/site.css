@@ -257,7 +257,7 @@ dialog.lightbox button { position: absolute; top: -48px; right: 0; }
 @media (max-width: 640px) { .tech { grid-template-columns: 1fr; } }
 
 /* controls */
-.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: start; }
 .controls .card { --b: 3px; --bc: var(--line); background: var(--panel); margin: 3px; padding: 24px clamp(18px, 3vw, 30px) 26px; }
 .controls h3 { font-size: 16px; color: var(--teal); margin-bottom: 14px; letter-spacing: .08em; }
 .ctable { width: 100%; border-collapse: collapse; }
@@ -266,7 +266,11 @@ dialog.lightbox button { position: absolute; top: -48px; right: 0; }
 .ctable tr + tr { border-top: 2px solid #1d1629; }
 .options { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; }
 .chip { font: 600 12.5px/1 var(--mono); letter-spacing: .05em; color: var(--text); background: var(--panel-2); padding: 10px 12px; box-shadow: inset 3px 0 0 var(--teal); }
-@media (max-width: 880px) { .controls { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .controls { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 760px) { .controls { grid-template-columns: 1fr; } }
+.ctable .alt { color: var(--dim); font-size: 12px; }
+.pad-note { color: var(--dim); }
+@media (pointer: coarse) { .pad-note { display: none; } }
 
 /* testing callout */
 .callout { display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center; --b: 3px; --bc: var(--line); background: linear-gradient(90deg, #17112a, var(--panel)); margin: 56px 3px 0; padding: 28px clamp(20px, 4vw, 40px); }
