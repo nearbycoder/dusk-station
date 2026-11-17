@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dusk Station · A pixel-art exploration platformer you can play in your browser</title>
+<meta name="description" content="A lone surveyor, an abandoned research station and a sun that never sets. Dusk Station is a free pixel-art exploration platformer: three regions, two movement upgrades, secrets, a boss, and no install. Play it right here.">
+<meta name="theme-color" content="#07060b">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://nearbycoder.github.io/dusk-station/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dusk Station">
+<meta property="og:description" content="A pixel-art exploration platformer at perpetual dusk. Free, in your browser, about 20 minutes.">
+<meta property="og:url" content="https://nearbycoder.github.io/dusk-station/">
+<meta property="og:image" content="https://nearbycoder.github.io/dusk-station/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dusk Station">
+<meta name="twitter:description" content="A pixel-art exploration platformer at perpetual dusk. Free, in your browser.">
+<meta name="twitter:image" content="https://nearbycoder.github.io/dusk-station/assets/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Dusk Station home"><img class="px" src="assets/favicon.svg" alt="" width="30" height="30">Dusk Station</a>
+  <nav class="nav-links" aria-label="Sections">
+    <a class="nav-text" href="#world">World</a>
+    <a class="nav-text" href="#features">Features</a>
+    <a class="nav-text" href="#made">How it's made</a>
+    <a class="nav-text" href="#controls">Controls</a>
+    <a class="gh-link" href="https://github.com/nearbycoder/dusk-station" aria-label="Source on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+    <a class="btn btn--small" href="#play" data-play>Play</a>
+  </nav>
+</header>
+
+<main id="top">
+  <!-- ============ HERO + PLAYER ============ -->
+  <section class="hero" aria-labelledby="game-title">
+    <div class="hero-bg" role="img" aria-label="A dusk sky over alien mesas and giant fungal trees, with the station's silhouette on the ridge"></div>
+    <div class="wrap hero-inner">
+      <span class="eyebrow">Free · Plays in your browser</span>
+      <h1 class="title" id="game-title">Dusk Station</h1>
+      <p class="tagline">A lone surveyor. An abandoned research station beneath an alien wilderness. A sun that never quite sets.</p>
+
+      <div class="screen-wrap" id="play">
+        <div class="screen" id="screen">
+          <span class="screen-tag" id="screenTag">Gameplay</span>
+          <video id="trailer" class="px" autoplay muted loop playsinline preload="auto" poster="assets/media/poster.png" aria-label="Gameplay montage: running across the landing site, dashing over a collapsed walkway, fighting drones, wall-jumping up a coolant spire and battling the reactor guardian">
+            <source src="assets/media/gameplay.webm" type="video/webm">
+            <source src="assets/media/gameplay.mp4" type="video/mp4">
+          </video>
+          <button class="screen-overlay" id="playBtn" type="button" aria-label="Play Dusk Station here">
+            <span class="btn btn--big" aria-hidden="true"><svg viewBox="0 0 8 8" fill="currentColor"><path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"/></svg>Play now</span>
+            <small>Runs right here · no install · about 20 minutes</small>
+          </button>
+        </div>
+        <div class="screen-bar">
+          <button class="btn btn--ghost btn--small" type="button" id="fsBtn"><svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><path d="M0 0h3v1H1v2H0zM5 0h3v3H7V1H5zM0 5h1v2h2v1H0zM7 5h1v3H5V7h2z"/></svg>Fullscreen</button>
+          <a class="btn btn--ghost btn--small" href="play/" target="_blank" rel="noopener"><svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><path d="M3 0h5v5H7V2L3 6 2 5l4-4H3zM0 2h2v1H1v4h4V6h1v2H0z"/></svg>Open in a new tab</a>
+          <a class="btn btn--ghost btn--small" href="https://github.com/nearbycoder/dusk-station"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Source</a>
+        </div>
+        <p class="screen-help" id="screenHelp"><span class="key-only"><kbd>A</kbd><kbd>D</kbd> move &nbsp;<kbd>Space</kbd> jump &nbsp;<kbd>J</kbd> fire &nbsp;<kbd>K</kbd> dash &nbsp;<kbd>W</kbd> use &nbsp;<kbd>M</kbd> map &nbsp;<kbd>Esc</kbd> pause</span><span class="touch-only">On-screen touch controls appear once you start. Best in landscape.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STORY ============ -->
+  <section class="band" aria-labelledby="story-h">
+    <div class="wrap story">
+      <div class="reveal">
+        <span class="eyebrow">The signal went quiet</span>
+        <h2 id="story-h" style="margin:18px 0 24px">Outpost 7 is still standing.</h2>
+        <p class="lead">Your lander settles on the ridge as the light turns amber. Below it, a research station sits half-swallowed by the planet, its uplink beacon dark and its reactor cold.</p>
+        <p>Something luminous has grown through the machinery while the crew was gone. Sentinels still walk their rounds. Specimen tanks have cracked. The terminals remember a little of what happened.</p>
+        <p>Work your way down through the landing complex, the flooded laboratories and the buried reactor. Recover the tools the crew left behind, wake the core, and bring the beacon back online.</p>
+      </div>
+      <figure class="frame notch reveal">
+        <img class="px" src="assets/screens/landing.png" alt="The surveyor jumps past their landing craft and an abandoned survey transport draped in turquoise vines, under a dusk sky" width="320" height="180" loading="lazy">
+        <figcaption><b>Landing Site</b><span>Landing Complex</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ REGIONS ============ -->
+  <section class="band band--night" id="world" aria-labelledby="world-h">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="eyebrow">One station, three worlds</span>
+        <h2 id="world-h">Every region has its own light.</h2>
+        <p class="lead muted">Fifteen hand-built rooms, each with its own palette, parallax and weather of drifting spores, so you always know where you are, even in the dark.</p>
+      </div>
+      <div class="regions">
+        <article class="region notch reveal" style="--accent: var(--amber)">
+          <img class="px" src="assets/screens/observation.png" alt="The observation deck: broken windows frame the alien skyline while amber light falls across the floor; a drone and a ceiling organism wait" width="320" height="180" loading="lazy">
+          <div class="region-body">
+            <span class="kicker">Region 01</span>
+            <h3>Overgrown Landing Complex</h3>
+            <p>Amber light through broken observation windows, violet shadow in the corridors, and turquoise growth curling around dormant machinery.</p>
+            <div class="swatches" aria-hidden="true"><i style="background:#24133b"></i><i style="background:#63244e"></i><i style="background:#bd5240"></i><i style="background:#f1a752"></i><i style="background:#33bea2"></i><i style="background:#8cf2d8"></i></div>
+          </div>
+        </article>
+        <article class="region notch reveal" style="--accent: var(--teal)">
+          <img class="px" src="assets/screens/specimen.png" alt="The specimen gallery: a vast dark creature drifts behind laboratory glass while the surveyor reads a terminal" width="320" height="180" loading="lazy">
+          <div class="region-body">
+            <span class="kicker">Region 02</span>
+            <h3>Flooded Laboratories</h3>
+            <p>Cold tile, standing water and cracked specimen tanks. Something enormous still moves behind the glass in the gallery. Don't tap it.</p>
+            <div class="swatches" aria-hidden="true"><i style="background:#0b1626"></i><i style="background:#1d364e"></i><i style="background:#2c394b"></i><i style="background:#1d7484"></i><i style="background:#6fd6cf"></i><i style="background:#ff5f95"></i></div>
+          </div>
+        </article>
+        <article class="region notch reveal" style="--accent: var(--orange)">
+          <img class="px" src="assets/screens/descent.png" alt="The reactor descent: a colossal reactor sphere glows in the depths as a security drone paints a red targeting line at the surveyor" width="320" height="180" loading="lazy">
+          <div class="region-body">
+            <span class="kicker">Region 03</span>
+            <h3>Buried Reactor</h3>
+            <p>Rust, heat and a core the size of a hill, waking slowly as you descend. The deeper you go, the brighter it pulses.</p>
+            <div class="swatches" aria-hidden="true"><i style="background:#170909"></i><i style="background:#4a1c10"></i><i style="background:#7a4630"></i><i style="background:#ff8a3c"></i><i style="background:#ffd890"></i><i style="background:#25c9a8"></i></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="band" id="features" aria-labelledby="features-h">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">What you'll do</span>
+        <h2 id="features-h">Small station. Lots to find.</h2>
+      </div>
+      <div class="features">
+        <div class="feature">
+          <figure class="frame notch feature-media reveal">
+            <img class="px" src="assets/screens/concourse.png" alt="Mid-air dash over the collapsed concourse walkway, teal afterimages trailing the surveyor toward the glowing reactor lift" width="320" height="180" loading="lazy">
+            <figcaption><b>Air dash</b><span>Concourse · the collapsed walkway</span></figcaption>
+          </figure>
+          <div class="feature-text reveal">
+            <span class="kicker">Movement</span>
+            <h3>Two upgrades that redraw the map</h3>
+            <p>You can see the reactor lift from the first hub. You just can't reach it yet. The air dash and the magnetic boots change how every room you've already crossed works.</p>
+            <ul>
+              <li>Dash through living membranes and over the collapsed walkway</li>
+              <li>Slide down steel and wall-jump up the coolant spire</li>
+              <li>Shortcuts open from the far side, so trips back stay short</li>
+              <li>Coyote time, jump buffering and variable jump height keep it tight</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature">
+          <figure class="frame notch feature-media reveal">
+            <img class="px" src="assets/screens/warden.png" alt="The surveyor faces the Warden Sentinel, a hulking armoured guard with a rust-orange shield and a glowing weak point on its back" width="320" height="180" loading="lazy">
+            <figcaption><b>Warden Sentinel</b><span>Containment Vault</span></figcaption>
+          </figure>
+          <div class="feature-text reveal">
+            <span class="kicker">Combat</span>
+            <h3>Every enemy shows its hand</h3>
+            <p>A quick bolt with a steady rhythm, and a charged shot you build by holding fire. Enemies wind up before they strike and recover after, so a fight is about reading, not reacting.</p>
+            <ul>
+              <li>Aim forward, up or diagonally, while running, jumping or crouching</li>
+              <li>Brief hit-stop, measured knockback and a short grace period after a hit</li>
+              <li>Armoured sentinels can only be hurt from behind</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature">
+          <figure class="frame notch feature-media reveal">
+            <img class="px" src="assets/screens/custodian.png" alt="The Custodian, a ceiling-rail maintenance machine overgrown with luminous turquoise growth, hangs before the reactor core while spore landing markers flash on the floor" width="320" height="180" loading="lazy">
+            <figcaption><b>The Custodian</b><span>Reactor Core</span></figcaption>
+          </figure>
+          <div class="feature-text reveal">
+            <span class="kicker">The guardian</span>
+            <h3>Something is wearing the reactor's maintenance machine</h3>
+            <p>A ceiling-rail crane overrun by luminous growth guards the core. Three clearly telegraphed attacks, a second phase that chains them faster, and a gap after every pattern when its core opens.</p>
+            <ul>
+              <li>Claw slams that send shockwaves along the floor</li>
+              <li>Spore volleys with marked landing spots</li>
+              <li>A floor-level charge you'll want to dash through or climb over</li>
+              <li>A rest pod right outside the door, and an instant retry</li>
+            </ul>
+          </div>
+        </div>
+        <div class="feature">
+          <figure class="frame notch feature-media reveal">
+            <img src="assets/screens/map.png" alt="The station map showing explored rooms by region, doors, rest pods, upgrade barriers and a glimpsed item" width="1280" height="720" loading="lazy">
+            <figcaption><b>Station map</b><span>Press M</span></figcaption>
+          </figure>
+          <div class="feature-text reveal">
+            <span class="kicker">Exploration</span>
+            <h3>Secrets behind cracked panels</h3>
+            <p>Four suit cells and a pulse amplifier sit off the main path. The clues are consistent: cracked panels, exposed wiring, spores drifting out of a wall, a chamber you can see but not reach.</p>
+            <ul>
+              <li>The map only shows rooms you've been to, plus the doors and barriers you've seen</li>
+              <li>Completion counts what you actually found, not what you passed</li>
+              <li>Rest pods heal you and save locally</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="roster" aria-label="Enemies">
+        <article class="foe notch reveal">
+          <div class="foe-sprites"><figure><img src="assets/sprites/crawler-walk0.png" width="60" height="42" alt="Maintenance crawler, patrolling"><figcaption>Patrol</figcaption></figure><figure><img src="assets/sprites/crawler-tell.png" width="60" height="42" alt="Maintenance crawler rearing up before a lunge"><figcaption>Tell</figcaption></figure></div>
+          <div class="foe-body"><h3>Maintenance crawler</h3><span class="tell">Rears up, eye flashes</span><p>Patrols its stretch of floor, then lunges. When it stalls and sparks, it's open.</p></div>
+        </article>
+        <article class="foe notch reveal">
+          <div class="foe-sprites"><figure><img src="assets/sprites/drone-idle.png" width="51" height="48" alt="Security drone, hovering"><figcaption>Hover</figcaption></figure><figure><img src="assets/sprites/drone-aim.png" width="51" height="48" alt="Security drone with a red eye, aiming"><figcaption>Tell</figcaption></figure></div>
+          <div class="foe-body"><h3>Security drone</h3><span class="tell">Red eye, painted target line</span><p>Keeps its distance and paints a line before it fires. Crouch, move, or shoot the bolt down.</p></div>
+        </article>
+        <article class="foe notch reveal">
+          <div class="foe-sprites"><figure><img src="assets/sprites/lurker-hang.png" width="54" height="60" alt="Ceiling organism hanging from its tendrils"><figcaption>Hang</figcaption></figure><figure><img src="assets/sprites/lurker-tell.png" width="54" height="60" alt="Ceiling organism swelling before it drops"><figcaption>Tell</figcaption></figure></div>
+          <div class="foe-body"><h3>Ceiling organism</h3><span class="tell">Shudders, drips, marks the floor</span><p>Hangs where you walk. Before it drops, it swells and a warning appears on the ground below.</p></div>
+        </article>
+        <article class="foe notch reveal">
+          <div class="foe-sprites"><figure><img src="assets/sprites/sentinel-walk0.png" width="78" height="84" alt="Armoured sentinel with its shield forward"><figcaption>Guard</figcaption></figure><figure><img src="assets/sprites/sentinel-tell.png" width="78" height="84" alt="Armoured sentinel raising its shield to slam"><figcaption>Tell</figcaption></figure></div>
+          <div class="foe-body"><h3>Armoured sentinel</h3><span class="tell">Raises its shield</span><p>Shots bounce off the front. It turns slowly, so jump over or dash through and aim for the glow on its back.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section class="band band--night" id="gallery" aria-labelledby="gallery-h">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Screenshots</span>
+        <h2 id="gallery-h">Every pixel, drawn by code.</h2>
+        <p class="lead muted">These are straight captures at the game's native 320 × 180, scaled up without smoothing.</p>
+      </div>
+      <div class="gallery">
+        <button class="shot reveal" type="button" data-full="assets/screens/landing.png" data-caption="Landing Site · the lander and an abandoned survey transport under vines"><img class="px" src="assets/screens/landing.png" alt="Landing Site" width="320" height="180" loading="lazy"><span>Landing Site</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/observation.png" data-caption="Observation Deck · amber light through broken windows"><img class="px" src="assets/screens/observation.png" alt="Observation Deck" width="320" height="180" loading="lazy"><span>Observation Deck</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/concourse.png" data-caption="Concourse · dashing across the collapsed walkway"><img class="px" src="assets/screens/concourse.png" alt="Concourse" width="320" height="180" loading="lazy"><span>Concourse</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/specimen.png" data-caption="Specimen Gallery · something moves behind the glass"><img class="px" src="assets/screens/specimen.png" alt="Specimen Gallery" width="320" height="180" loading="lazy"><span>Specimen Gallery</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/descent.png" data-caption="Reactor Descent · the core, waking"><img class="px" src="assets/screens/descent.png" alt="Reactor Descent" width="320" height="180" loading="lazy"><span>Reactor Descent</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/spire.png" data-caption="Coolant Spire · wall-jumping on magnetic boots"><img class="px" src="assets/screens/spire.png" alt="Coolant Spire" width="320" height="180" loading="lazy"><span>Coolant Spire</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/warden.png" data-caption="Containment Vault · the Warden Sentinel"><img class="px" src="assets/screens/warden.png" alt="Containment Vault" width="320" height="180" loading="lazy"><span>Containment Vault</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/custodian.png" data-caption="Reactor Core · the Custodian, second phase"><img class="px" src="assets/screens/custodian.png" alt="Reactor Core" width="320" height="180" loading="lazy"><span>Reactor Core</span></button>
+        <button class="shot reveal" type="button" data-full="assets/screens/ridge.png" data-caption="Beacon Ridge · the view from the top"><img class="px" src="assets/screens/ridge.png" alt="Beacon Ridge" width="320" height="180" loading="lazy"><span>Beacon Ridge</span></button>
+      </div>
+    </div>
+    <dialog class="lightbox" id="lightbox" aria-label="Screenshot">
+      <button class="btn btn--ghost btn--small" type="button" id="lbClose">Close</button>
+      <img class="px" id="lbImg" src="" alt="">
+      <p id="lbCap"></p>
+    </dialog>
+  </section>
+
+  <!-- ============ HOW IT'S MADE ============ -->
+  <section class="band band--deep" id="made" aria-labelledby="made-h">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">How it's made</span>
+        <h2 id="made-h">One file. No engine. No art files.</h2>
+        <p class="lead muted">The whole game is a single HTML page you can open from disk. Everything you see and hear is generated by its own code when it starts.</p>
+      </div>
+
+      <div class="stats notch reveal">
+        <div class="stat"><b>1</b><span>HTML file</span></div>
+        <div class="stat"><b>248 KB</b><span>The whole game</span></div>
+        <div class="stat"><b>0</b><span>Image or audio files</span></div>
+        <div class="stat"><b>15</b><span>Hand-built rooms</span></div>
+        <div class="stat"><b>41</b><span>Synthesised sounds</span></div>
+        <div class="stat"><b>60 Hz</b><span>Fixed-step physics</span></div>
+      </div>
+
+      <div class="anatomy">
+        <div class="stack reveal" id="stack" aria-label="One frame of the observation deck split into its render layers">
+          <div class="stack-scene">
+            <img class="layer" style="--i:0" data-l="0" src="assets/layers/sky.png" alt="" width="320" height="180" loading="lazy">
+            <img class="layer" style="--i:1" data-l="1" src="assets/layers/structures.png" alt="" width="320" height="180" loading="lazy">
+            <img class="layer" style="--i:2" data-l="2" src="assets/layers/wall.png" alt="" width="320" height="180" loading="lazy">
+            <img class="layer" style="--i:3" data-l="3" src="assets/layers/tiles.png" alt="" width="320" height="180" loading="lazy">
+            <img class="layer" style="--i:4" data-l="4" src="assets/layers/light.png" alt="" width="320" height="180" loading="lazy">
+            <img class="layer" style="--i:5" data-l="5" src="assets/layers/actors.png" alt="" width="320" height="180" loading="lazy">
+            <img class="layer" style="--i:6" data-l="6" src="assets/layers/hud.png" alt="" width="320" height="180" loading="lazy">
+          </div>
+        </div>
+        <div class="reveal">
+          <span class="kicker">Anatomy of a frame</span>
+          <h3 style="font-size:24px;color:var(--amber);margin:12px 0 18px">Seven layers, painted once</h3>
+          <ol class="layer-list" id="layerList">
+            <li data-l="6"><div><b>Interface</b><span>Health cells, energy and abilities. Text goes on a separate sharp overlay.</span></div></li>
+            <li data-l="5"><div><b>Characters and effects</b><span>Sprites built from pixel parts and outlined automatically, plus projectiles and particles.</span></div></li>
+            <li data-l="4"><div><b>Light shafts</b><span>Dithered amber light, cast through the windows and caught on the floor.</span></div></li>
+            <li data-l="3"><div><b>Tiles and scenery</b><span>Each tile is shaded by its neighbours; cables, lamps and water animate on top.</span></div></li>
+            <li data-l="2"><div><b>Back wall</b><span>Panels, grime and window frames, with holes cut to show the outside.</span></div></li>
+            <li data-l="1"><div><b>Station silhouettes</b><span>Parallax at half speed.</span></div></li>
+            <li data-l="0"><div><b>Sky</b><span>Dusk bands dithered with a 4 × 4 Bayer matrix, at a fifth of the speed.</span></div></li>
+          </ol>
+          <button class="btn btn--ghost btn--small" type="button" id="stackBtn">Assemble the frame</button>
+        </div>
+      </div>
+
+      <div class="tech">
+        <article class="notch reveal"><h3><i></i>Crisp at any size</h3><p>The world renders at <code>320 × 180</code> and scales up by whole pixels with no smoothing. Text lives on a separate high-resolution overlay, so it stays sharp at any size.</p></article>
+        <article class="notch reveal"><h3><i></i>Dithering, not gradients</h3><p>Skies, shadows, light and fades are ordered 4 × 4 Bayer patterns. Even see-through effects like membranes and water are dither, not alpha.</p></article>
+        <article class="notch reveal"><h3><i></i>Rooms as data</h3><p>Rooms are written as tile rectangles plus objects and scenery. Their parallax layers, walls, tiles and props are painted procedurally on entry and cached.</p></article>
+        <article class="notch reveal"><h3><i></i>Feel, in numbers</h3><p>A fixed 60 Hz step, 0.1 s of coyote time, a 0.135 s jump buffer and 4 px collision sub-steps, so nothing tunnels through an 8 px tile. The camera snaps to whole pixels and moves in step with you.</p></article>
+        <article class="notch reveal"><h3><i></i>Every sound synthesised</h3><p>Footsteps, bolts, the charge hum, enemy tells and the drone of each region are oscillators and filtered noise in Web Audio. Sound is off until you turn it on.</p></article>
+        <article class="notch reveal"><h3><i></i>Plays anywhere</h3><p>Keyboard or touch with multi-finger support, a reduced-motion mode, auto-pause when focus is lost, and local saves that fall back gracefully when storage is blocked.</p></article>
+      </div>
+
+      <div class="callout notch reveal">
+        <img class="bot" src="assets/sprites/surveyor-run.png" width="84" height="90" alt="">
+        <div>
+          <h3>A bot finished it before anyone else did</h3>
+          <p>A scripted player beats the whole game from a fresh save using only key presses: every jump, dash, wall-climb, shortcut and the final fight. Randomised stress runs, save and reload checks, touch tests and "can you climb back out?" checks run in a headless browser too, which is how several unfair jumps were found and fixed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTROLS ============ -->
+  <section class="band" id="controls" aria-labelledby="controls-h">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">Controls</span>
+        <h2 id="controls-h">Pick it up in seconds.</h2>
+        <p class="lead muted">Hints appear the first time you need them and disappear once you've done the thing. Movement and firing work together.</p>
+      </div>
+      <div class="controls">
+        <div class="card notch reveal">
+          <h3>Keyboard</h3>
+          <table class="ctable">
+            <tr><th>Move</th><td><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd></td></tr>
+            <tr><th>Jump</th><td><kbd>Space</kbd> or <kbd>Z</kbd> · hold for height</td></tr>
+            <tr><th>Fire</th><td><kbd>J</kbd> or <kbd>X</kbd> · hold, then release to charge</td></tr>
+            <tr><th>Dash</th><td><kbd>K</kbd> or <kbd>C</kbd> · once found</td></tr>
+            <tr><th>Crouch</th><td><kbd>S</kbd> or <kbd>↓</kbd></td></tr>
+            <tr><th>Use / aim up</th><td><kbd>W</kbd> or <kbd>↑</kbd></td></tr>
+            <tr><th>Drop through a grate</th><td><kbd>S</kbd> + <kbd>Space</kbd></td></tr>
+            <tr><th>Map · Pause</th><td><kbd>M</kbd> · <kbd>Esc</kbd></td></tr>
+          </table>
+        </div>
+        <div class="card notch reveal">
+          <h3>Touch</h3>
+          <table class="ctable">
+            <tr><th>Move, crouch, use</th><td>D-pad (left thumb)</td></tr>
+            <tr><th>Jump</th><td>JUMP</td></tr>
+            <tr><th>Fire</th><td>FIRE · hold to charge</td></tr>
+            <tr><th>Dash</th><td>DASH · appears once found</td></tr>
+            <tr><th>Map · Pause</th><td>Buttons, top right</td></tr>
+          </table>
+          <p class="muted" style="margin:18px 0 0;font-size:15px">Best in landscape. On a phone, <a href="play/">open the game full screen</a>.</p>
+          <div class="options">
+            <span class="chip">Reduced motion</span><span class="chip">Sound toggle</span><span class="chip">Auto-pause</span><span class="chip">Local saves</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINALE ============ -->
+  <section class="finale" aria-labelledby="finale-h">
+    <div class="finale-bg"></div>
+    <div class="wrap">
+      <h2 id="finale-h">The beacon is waiting.</h2>
+      <p>Twenty minutes, one station, no install. Your progress saves in the browser, so you can stop at any rest pod.</p>
+      <a class="btn btn--big" href="#play" data-play><svg viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><path d="M1 0h2v1h1v1h1v1h1v2H5v1H4v1H3v1H1z"/></svg>Play Dusk Station</a>
+      <a class="btn btn--ghost btn--big" href="https://github.com/nearbycoder/dusk-station">View the source</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>Dusk Station · Canvas 2D and Web Audio, no libraries · © 2026 nearbycoder</span>
+    <nav aria-label="Footer">
+      <a href="play/">Play full screen</a>
+      <a href="https://github.com/nearbycoder/dusk-station">GitHub</a>
+      <a href="https://dusk-station.site.yeeet.dev">Mirror on yeeet.dev</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>
